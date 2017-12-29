@@ -20,13 +20,14 @@ import org.team401.snakeeyes.camera.Camera
 
 class CameraView(private val camera: Camera): View {
     override fun render(width: Int, height: Int, type: Int, properties: RenderProperties): Mat {
-        val mat = camera.read()
+        val mat = camera.get()
         if (mat.rows() == height && mat.cols() == width) {
-            return mat.clone()
+            return mat
         } else {
             val destMat = Mat()
             Tools.resizeKeepAspect(mat, destMat, Size(width.toDouble(), height.toDouble()), properties.makeBorderOnResize)
-            return destMat.clone()
+            mat.release()
+            return destMat
         }
     }
 }

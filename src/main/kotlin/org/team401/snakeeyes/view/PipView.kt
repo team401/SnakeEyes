@@ -24,8 +24,8 @@ class PipView(val main: View, val sub: View, val pos: Position = Position.BOTTOM
         BOTTOM_LEFT   (false, true, true, false),
         BOTTOM_CENTER (false, true, false, false),
         BOTTOM_RIGHT  (false, true, false, true),
-        LEFT_CENTER   (true, false, false, false),
-        RIGHT_CENTER  (false, true, false, false),
+        LEFT_CENTER   (false, false, true, false),
+        RIGHT_CENTER  (false, false, false, true),
         CENTER        (false, false, false, false)
     }
 
@@ -78,6 +78,8 @@ class PipView(val main: View, val sub: View, val pos: Position = Position.BOTTOM
 
         val roi = mainMat.submat(rowStart, rowEnd, colStart, colEnd)
         subMat.copyTo(roi)
-        return mainMat.clone()
+        subMat.release()
+        roi.release()
+        return mainMat
     }
 }

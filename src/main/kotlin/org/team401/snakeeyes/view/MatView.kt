@@ -21,11 +21,11 @@ import org.team401.snakeeyes.Tools
 class MatView(val mat: Mat): View {
     override fun render(width: Int, height: Int, type: Int, properties: RenderProperties): Mat {
         if (mat.rows() == height && mat.cols() == width) {
-            return mat.clone()
+            return mat
         } else {
             val destMat = Mat()
             Tools.resizeKeepAspect(mat, destMat, Size(width.toDouble(), height.toDouble()), properties.makeBorderOnResize)
-            return destMat.clone()
+            return destMat
         }
     }
 }

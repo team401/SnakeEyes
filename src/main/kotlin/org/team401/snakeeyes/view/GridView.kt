@@ -40,11 +40,13 @@ class GridView(val rows: Int, val cols: Int): View {
                 roi = gridMat.submat(rowCurs, rowCurs + heightPerView, colCurs, colCurs + widthPerView)
                 view = subViews[row][col].render(widthPerView, heightPerView, type)
                 view.copyTo(roi)
+                view.release()
+                roi.release()
                 colCurs += widthPerView
             }
             rowCurs += heightPerView
             colCurs = 0
         }
-        return gridMat.clone()
+        return gridMat
     }
 }
