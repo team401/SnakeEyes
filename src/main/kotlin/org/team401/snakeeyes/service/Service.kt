@@ -1,4 +1,4 @@
-package org.team401.snakeeyes
+package org.team401.snakeeyes.service
 
 /*
  * snakeeyes - Created on 12/28/17

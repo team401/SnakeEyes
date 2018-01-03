@@ -18,6 +18,7 @@ import org.team401.snakeeyes.MatProvider
  */
 class Camera: MatProvider() {
     private val cap = VideoCapture()
+    private val v4l = org.jv4l2.Camera()
     private val current = Mat()
 
     internal fun grab() = cap.grab()
@@ -27,7 +28,27 @@ class Camera: MatProvider() {
     }
 
     fun open(path: String) {
+        v4l.open(path)
         cap.open(path)
-        cap.read(Mat())
+        val mat = Mat()
+        cap.read(mat)
+        mat.release()
+    }
+
+    fun open(id: Int) {
+        v4l.open(id)
+        cap.open(id)
+        val mat = Mat()
+        cap.read(mat)
+        mat.release()
+    }
+
+    fun setProperty(property: Int, value: Int) {
+        v4l.setProperty(property, value)
+    }
+
+    fun close() {
+        cap.release()
+        v4l.close()
     }
 }

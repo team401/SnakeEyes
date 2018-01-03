@@ -1,29 +1,21 @@
-package org.team401.snakeeyes.server
+package org.team401.snakeeyes.service
 
-import org.eclipse.jetty.server.Request
-import org.team401.snakeeyes.Service
 import org.team401.snakeeyes.view.View
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.AbstractHandler
 import org.opencv.core.Mat
 import org.opencv.core.MatOfByte
-import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
 import org.opencv.imgcodecs.Imgcodecs
 import org.team401.snakeeyes.LockingDelegate
-import org.team401.snakeeyes.view.CameraView
-import java.io.BufferedOutputStream
+import org.team401.snakeeyes.config.`object`.ConfigItem
 import java.io.ByteArrayOutputStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
-import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /*
  * snakeeyes - Created on 12/28/17
@@ -38,11 +30,24 @@ import javax.servlet.http.HttpServletResponse
  * @version 12/28/17
  */
 
-class MjpegServer(val view: View, val width: Int = 640, val height: Int = 480, framerate: Int = 30, quality: Int = 30, val timeout: Int = 2000): Service {
+class MjpegServer(override val port: Int, val view: View, val width: Int = 640, val height: Int = 480,
+                  framerate: Int = 30, quality: Int = 30, val timeout: Int = 2000,
+                  private val qualityConfig: ConfigItem<Int>? = null): Server {
     var quality: Int by LockingDelegate(quality)
 
     private companion object {
         val TERM = "\r\n\r\n".toByteArray()
+        val HEAD = (
+                        "HTTP/1.0 200 OK\r\n" +
+                        "Server: SnakeEyes\r\n" +
+                        "Connection: close\r\n" +
+                        "Max-Age: 0\r\n" +
+                        "Expires: 0\r\n" +
+                        "Cache-Control: no-cache, private\r\n" +
+                        "Pragma: no-cache\r\n" +
+                        "Content-Type: multipart/x-mixed-replace; " +
+                        "boundary=--BoundaryString\r\n\r\n"
+                ).toByteArray()
     }
 
     private val msPerFrame = (1000/framerate).toLong()
@@ -56,20 +61,12 @@ class MjpegServer(val view: View, val width: Int = 640, val height: Int = 480, f
     private inner class ConnHandler: Runnable {
         override fun run() {
             while (!Thread.interrupted()) {
-                val client = server.accept()
-                client.soTimeout = timeout
-                client.getOutputStream().write((
-                                "HTTP/1.0 200 OK\r\n" +
-                                "Server: YourServerName\r\n" +
-                                "Connection: close\r\n" +
-                                "Max-Age: 0\r\n" +
-                                "Expires: 0\r\n" +
-                                "Cache-Control: no-cache, private\r\n" +
-                                "Pragma: no-cache\r\n" +
-                                "Content-Type: multipart/x-mixed-replace; " +
-                                "boundary=--BoundaryString\r\n\r\n"
-                        ).toByteArray())
-                clients.add(client)
+                try {
+                    val client = server.accept()
+                    client.soTimeout = timeout
+                    client.getOutputStream().write(HEAD)
+                    clients.add(client)
+                } catch (e: SocketTimeoutException) {}
             }
         }
     }
@@ -81,10 +78,10 @@ class MjpegServer(val view: View, val width: Int = 640, val height: Int = 480, f
 
         val options = MatOfInt()
         val toRemove = arrayListOf<Socket>()
-        var first = true
 
         override fun run() {
             if (clients.isNotEmpty()) {
+                if (qualityConfig != null) quality = qualityConfig.get()
                 options.fromArray(Imgcodecs.CV_IMWRITE_JPEG_QUALITY, quality)
                 mat = view.render(width, height)
                 Imgcodecs.imencode(".jpg", mat, mob, options)
@@ -116,11 +113,8 @@ class MjpegServer(val view: View, val width: Int = 640, val height: Int = 480, f
     }
 
     override fun start() {
-        start(1800)
-    }
-
-    fun start(port: Int) {
         server.setPerformancePreferences(0, 1, 2)
+        server.soTimeout = 100
         server.bind(InetSocketAddress(port))
         serverThread = Thread(ConnHandler())
         serverThread?.start()
@@ -131,5 +125,6 @@ class MjpegServer(val view: View, val width: Int = 640, val height: Int = 480, f
         future?.cancel(false)
         serverThread?.interrupt()
         serverThread?.join()
+        executor.shutdownNow()
     }
 }

@@ -1,6 +1,7 @@
 package org.team401.snakeeyes
 
 import org.team401.snakeeyes.camera.Camera
+import org.team401.snakeeyes.service.Service
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -42,5 +43,6 @@ object Cameras: Service {
 
     override fun stop() {
         future?.cancel(false)
+        executor.shutdownNow()
     }
 }

@@ -2,7 +2,7 @@ package org.team401.snakeeyes
 
 import org.opencv.core.Core
 import org.team401.snakeeyes.camera.Camera
-import org.team401.snakeeyes.server.MjpegServer
+import org.team401.snakeeyes.service.MjpegServer
 import org.team401.snakeeyes.view.*
 
 /*
@@ -19,10 +19,9 @@ import org.team401.snakeeyes.view.*
  */
 
 fun main(args: Array<String>) {
-    System.setProperty("org.eclipse.jetty.LEVEL", "OFF");
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME)
     val cam = Camera()
-    cam.open("/dev/video0")
+    cam.open("/dev/v4l/by-id/usb-CN045G287248768KB1ECA01_Integrated_Webcam_HD-video-index0")
 
     Cameras.add(cam)
     Cameras.start()
@@ -32,16 +31,6 @@ fun main(args: Array<String>) {
     view.x = 100
     view.y = 100
 
-    val server = MjpegServer(view, 640, 480)
-    server.start(8080)
-
-    Thread.sleep(10000)
-
-    for (i in 0 until 640) {
-        if (i < 480) {
-            view.y = i
-        }
-        view.x = i
-        Thread.sleep(10)
-    }
+    val server = MjpegServer(8080, view, 640, 480)
+    server.start()
 }
