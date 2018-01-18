@@ -35,14 +35,14 @@ class CrosshairView(val bgView: View, val thickness: Int = 1, val color: Scalar 
 
     override fun render(width: Int, height: Int, type: Int, properties: RenderProperties): Mat {
         if (visible) {
-            val rendered = bgView.render(width, height, type, RenderProperties(makeBorderOnResize = false))
+            val rendered = bgView.render(width, height, type, properties)
             val vTop = Point(x.toDouble(), 0.0)
             val vBottom = Point(x.toDouble(), height.toDouble())
             val hLeft = Point(0.0, y.toDouble())
             val hRight = Point(width.toDouble(), y.toDouble())
             Imgproc.line(rendered, vTop, vBottom, color, thickness)
             Imgproc.line(rendered, hLeft, hRight, color, thickness)
-            return rendered.clone()
+            return rendered
         } else {
             return bgView.render(width, height, type)
         }

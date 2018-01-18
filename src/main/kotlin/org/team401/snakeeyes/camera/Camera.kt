@@ -2,6 +2,7 @@ package org.team401.snakeeyes.camera
 
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
+import org.team401.snakeeyes.MatProvider
 
 /*
  * snakeeyes - Created on 10/17/17
@@ -15,18 +16,39 @@ import org.opencv.videoio.VideoCapture
  * @author Cameron Earle
  * @version 10/17/17
  */
-class Camera(val id: Int) {
+class Camera: MatProvider() {
     private val cap = VideoCapture()
+    private val v4l = org.jv4l2.Camera()
+    private val current = Mat()
 
-    @Synchronized fun open() {
-        cap.open(id)
+    internal fun grab() = cap.grab()
+    internal fun retrieve() {
+        cap.retrieve(current)
+        update(current)
     }
 
-    @Synchronized fun read(): Mat {
+    fun open(path: String) {
+        v4l.open(path)
+        cap.open(path)
         val mat = Mat()
-        if (cap.isOpened) {
-            cap.read(mat)
-        }
-        return mat
+        cap.read(mat)
+        mat.release()
+    }
+
+    fun open(id: Int) {
+        v4l.open(id)
+        cap.open(id)
+        val mat = Mat()
+        cap.read(mat)
+        mat.release()
+    }
+
+    fun setProperty(property: Int, value: Int) {
+        v4l.setProperty(property, value)
+    }
+
+    fun close() {
+        cap.release()
+        v4l.close()
     }
 }

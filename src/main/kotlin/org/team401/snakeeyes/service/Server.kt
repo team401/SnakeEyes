@@ -1,7 +1,7 @@
-package org.team401.snakeeyes.server
+package org.team401.snakeeyes.service
 
 /*
- * snakeeyes - Created on 10/13/17
+ * snakeeyes - Created on 12/29/17
  * Author: Cameron Earle
  * 
  * This code is licensed under the GNU GPL v3
@@ -10,9 +10,9 @@ package org.team401.snakeeyes.server
 
 /**
  * @author Cameron Earle
- * @version 10/13/17
+ * @version 12/29/17
  */
-interface Server {
-    fun start(address: String, port: Int)
-    fun stop()
+
+interface Server: Service {
+    val port: Int
 }
