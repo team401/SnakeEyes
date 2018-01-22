@@ -14,7 +14,7 @@ package org.team401.snakeeyes.config
  */
 
 object Config {
-    fun load(path: String = "config") {
+    fun load() {
 
     }
 }
