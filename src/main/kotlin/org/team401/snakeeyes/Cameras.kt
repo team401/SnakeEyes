@@ -2,6 +2,7 @@ package org.team401.snakeeyes
 
 import org.team401.snakeeyes.camera.Camera
 import org.team401.snakeeyes.service.Service
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -20,29 +21,36 @@ import java.util.concurrent.TimeUnit
  */
 
 object Cameras: Service {
-    private val cameras = arrayListOf<Camera>()
-    private val executor = Executors.newSingleThreadScheduledExecutor()
-    private var future: ScheduledFuture<*>? = null
+    private val threads = Vector<Thread>()
 
-    var framerate = 30
+    private class CameraTask(val camera: Camera): Runnable {
+        val msPerFrame = (1000/camera.framerate).toLong()
+        var time = 0L
+
+        override fun run() {
+            time = System.currentTimeMillis()
+            camera.grab()
+            camera.retrieve()
+            Thread.sleep(Math.max(0, msPerFrame - (System.currentTimeMillis() - time)))
+        }
+    }
 
     fun add(camera: Camera) {
-        cameras.add(camera)
+        threads.add(Thread(CameraTask(camera)))
     }
 
     override fun start() {
-        future = executor.scheduleAtFixedRate({
-            cameras.forEach {
-                it.grab()
-            }
-            cameras.forEach {
-                it.retrieve()
-            }
-        }, 0L, (1000/framerate).toLong(), TimeUnit.MILLISECONDS)
+        threads.forEach {
+            it.start()
+        }
     }
 
     override fun stop() {
-        future?.cancel(false)
-        executor.shutdownNow()
+        threads.forEach {
+            it.interrupt()
+        }
+        threads.forEach {
+            it.join()
+        }
     }
 }

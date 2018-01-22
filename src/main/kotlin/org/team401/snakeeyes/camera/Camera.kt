@@ -2,6 +2,7 @@ package org.team401.snakeeyes.camera
 
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
+import org.opencv.videoio.Videoio
 import org.team401.snakeeyes.MatProvider
 
 /*
@@ -21,6 +22,8 @@ class Camera: MatProvider() {
     private val v4l = org.jv4l2.Camera()
     private val current = Mat()
 
+    var framerate = 0.0; private set
+
     internal fun grab() = cap.grab()
     internal fun retrieve() {
         cap.retrieve(current)
@@ -30,6 +33,7 @@ class Camera: MatProvider() {
     fun open(path: String) {
         v4l.open(path)
         cap.open(path)
+        framerate = cap.get(Videoio.CAP_PROP_FPS)
         val mat = Mat()
         cap.read(mat)
         mat.release()
