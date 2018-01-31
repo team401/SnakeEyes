@@ -18,10 +18,14 @@ import java.util.concurrent.atomic.AtomicReference
 
 abstract class MatProvider {
     private val currentMat = AtomicReference<Mat>(Mat())
+    private val notifier = java.lang.Object()
 
     protected fun update(mat: Mat) {
         currentMat.set(mat)
+        notifier.notifyAll()
     }
+
+    fun await() = notifier.wait()
 
     fun get() = currentMat.get().clone()
     fun get(mat: Mat) = currentMat.get().copyTo(mat)
