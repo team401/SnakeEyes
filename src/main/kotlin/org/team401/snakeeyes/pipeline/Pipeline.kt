@@ -45,5 +45,6 @@ abstract class Pipeline(val provider: MatProvider): Service {
 
     override fun stop() {
         thread.interrupt()
+        thread.join()
     }
 }

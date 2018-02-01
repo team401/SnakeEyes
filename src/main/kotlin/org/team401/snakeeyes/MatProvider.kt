@@ -1,6 +1,9 @@
 package org.team401.snakeeyes
 
 import org.opencv.core.Mat
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Phaser
+import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicReference
 
 /*
@@ -22,10 +25,11 @@ abstract class MatProvider {
 
     protected fun update(mat: Mat) {
         currentMat.set(mat)
-        notifier.notifyAll()
+        synchronized(notifier) {
+            notifier.notifyAll()
+        }
     }
-
-    fun await() = notifier.wait()
+    internal fun await() = synchronized(notifier) { notifier.wait() }
 
     fun get() = currentMat.get().clone()
     fun get(mat: Mat) = currentMat.get().copyTo(mat)

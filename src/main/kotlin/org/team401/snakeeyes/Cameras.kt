@@ -28,10 +28,12 @@ object Cameras: Service {
         var time = 0L
 
         override fun run() {
-            time = System.currentTimeMillis()
-            camera.grab()
-            camera.retrieve()
-            Thread.sleep(Math.max(0, msPerFrame - (System.currentTimeMillis() - time)))
+            while (!Thread.interrupted()) {
+                time = System.currentTimeMillis()
+                camera.grab()
+                camera.retrieve()
+                Thread.sleep(Math.max(0, msPerFrame - (System.currentTimeMillis() - time)))
+            }
         }
     }
 

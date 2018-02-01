@@ -39,13 +39,7 @@ class Camera: MatProvider() {
         mat.release()
     }
 
-    fun open(id: Int) {
-        v4l.open(id)
-        cap.open(id)
-        val mat = Mat()
-        cap.read(mat)
-        mat.release()
-    }
+    fun open(id: Int) = open("/dev/video$id")
 
     fun setProperty(property: Int, value: Int) {
         v4l.setProperty(property, value)
